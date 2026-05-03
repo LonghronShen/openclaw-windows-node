@@ -56,7 +56,11 @@ public class OpenClawGatewayClient : WebSocketClientBase
     private string? _operatorDeviceId;
     private string[] _grantedOperatorScopes = Array.Empty<string>();
     private string _connectAuthToken;
-    private SignatureTokenMode _signatureTokenMode = SignatureTokenMode.V3AuthToken;
+    private SignatureTokenMode _signatureTokenMode;
+    private SignatureTokenMode DefaultSignatureTokenMode =>
+        !string.IsNullOrEmpty(_deviceIdentity.DeviceToken)
+            ? SignatureTokenMode.V3AuthToken
+            : SignatureTokenMode.V3EmptyToken;
     private long? _challengeTimestampMs;
     private string? _currentChallengeNonce;
     private bool _usageStatusUnsupported;
@@ -165,6 +169,7 @@ public class OpenClawGatewayClient : WebSocketClientBase
         _deviceIdentity = new DeviceIdentity(dataPath, _logger);
         _deviceIdentity.Initialize();
         _connectAuthToken = _deviceIdentity.DeviceToken ?? _token;
+        _signatureTokenMode = DefaultSignatureTokenMode;
     }
 
     public async Task DisconnectAsync()
