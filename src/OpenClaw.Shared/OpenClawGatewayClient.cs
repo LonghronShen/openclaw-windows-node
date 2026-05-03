@@ -488,6 +488,7 @@ public class OpenClawGatewayClient : WebSocketClientBase
                     id = OperatorClientId,  // Native client ID
                     version = "1.0.0",
                     platform = OperatorPlatform,
+                    deviceFamily = OperatorDeviceFamily,
                     mode = OperatorClientMode,
                     displayName = OperatorClientDisplayName
                 },
