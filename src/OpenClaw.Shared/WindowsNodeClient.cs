@@ -56,6 +56,8 @@ public class WindowsNodeClient : WebSocketClientBase
     /// <summary>True if connected but waiting for pairing approval on gateway</summary>
     public bool IsPendingApproval => _isPendingApproval;
     
+    private int _consecutiveAuthFailures;
+
     /// <summary>True if device is paired via a stored token or an explicit gateway approval event.</summary>
     public bool IsPaired => _isPaired || !string.IsNullOrEmpty(_deviceIdentity.DeviceToken);
     
@@ -603,6 +605,7 @@ public class WindowsNodeClient : WebSocketClientBase
             PublishGatewaySelf(GatewaySelfInfo.FromHelloOk(payload));
             var reconnectingAfterApproval = _pairingApprovedAwaitingReconnect;
             _isConnected = true;
+            _consecutiveAuthFailures = 0;
             ResetReconnectAttempts();
             
             // Extract node ID if returned
@@ -731,7 +734,23 @@ public class WindowsNodeClient : WebSocketClientBase
             return;
         }
 
+        if (string.Equals(errorCode, "token_mismatch", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.Warning("Device token rejected by gateway - clearing local pairing state");
+            _deviceIdentity.StoreDeviceToken(null);
+            _isPaired = false;
+            _isPendingApproval = false;
+            _consecutiveAuthFailures++;
+            _pairingApprovedAwaitingReconnect = false;
+            PairingStatusChanged?.Invoke(this, new PairingStatusEventArgs(
+                PairingStatus.Pending,
+                _deviceIdentity.DeviceId,
+                "Device token rejected; re-pairing required"));
+            return;
+        }
+
         _logger.Error($"Node registration failed: {error} (code: {errorCode})");
+        _consecutiveAuthFailures++;
         RaiseStatusChanged(ConnectionStatus.Error);
     }
 
@@ -997,17 +1016,25 @@ public class WindowsNodeClient : WebSocketClientBase
         GatewaySelfUpdated?.Invoke(this, info);
     }
     
+    protected override bool ShouldAutoReconnect()
+    {
+        // Stop retrying after 3 consecutive auth failures to avoid a hard-lock
+        // reconnection loop that eventually triggers rate_limited on the gateway.
+        return _consecutiveAuthFailures < 3;
+    }
+
     protected override void OnDisconnected()
     {
         _isConnected = false;
-        _isPendingApproval = false;
-        _isPaired = false;
+        // Preserve _isPaired and _isPendingApproval on disconnect — they describe
+        // the pairing relationship, not the ephemeral WebSocket state. Clearing them
+        // here breaks reconnection after pairing approval, network blips, or gateway
+        // restarts and causes a hard-lock reconnection loop.
     }
 
     protected override void OnError(Exception ex)
     {
         _isConnected = false;
-        _isPendingApproval = false;
-        _isPaired = false;
+        // Same rationale as OnDisconnected: preserve pairing state across errors.
     }
 }
