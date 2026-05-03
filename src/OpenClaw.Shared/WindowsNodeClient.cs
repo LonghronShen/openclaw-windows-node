@@ -736,7 +736,7 @@ public class WindowsNodeClient : WebSocketClientBase
 
         if (string.Equals(errorCode, "token_mismatch", StringComparison.OrdinalIgnoreCase))
         {
-            _logger.Warning("Device token rejected by gateway - clearing local pairing state");
+            _logger.Warn("Device token rejected by gateway - clearing local pairing state");
             _deviceIdentity.StoreDeviceToken(null);
             _isPaired = false;
             _isPendingApproval = false;
