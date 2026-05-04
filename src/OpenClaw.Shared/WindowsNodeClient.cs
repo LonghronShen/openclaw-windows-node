@@ -573,7 +573,15 @@ public class WindowsNodeClient : WebSocketClientBase
     {
         if (!string.IsNullOrEmpty(_deviceIdentity.DeviceToken))
         {
-            return (new Dictionary<string, string> { ["token"] = _deviceIdentity.DeviceToken }, _deviceIdentity.DeviceToken);
+            // When a device token is stored, send auth.token with the shared gateway
+            // password (for secret-based auth) AND auth.deviceToken with the stored
+            // device token (for device-based auth). The signature uses the gateway
+            // password since resolveSignatureToken picks auth.token first.
+            return (new Dictionary<string, string>
+            {
+                ["token"] = _gatewayToken,
+                ["deviceToken"] = _deviceIdentity.DeviceToken
+            }, _gatewayToken);
         }
 
         if (!string.IsNullOrEmpty(_bootstrapToken))
