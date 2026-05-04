@@ -449,9 +449,7 @@ public class OpenClawGatewayClient : WebSocketClientBase
 
         var signedAt = _challengeTimestampMs ?? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var connectNonce = nonce ?? string.Empty;
-        var signatureToken = _signatureTokenMode is SignatureTokenMode.V3EmptyToken or SignatureTokenMode.V2EmptyToken
-            ? string.Empty
-            : _connectAuthToken;
+        var signatureToken = _connectAuthToken;
 
         var signature = _signatureTokenMode is SignatureTokenMode.V2AuthToken or SignatureTokenMode.V2EmptyToken
             ? _deviceIdentity.SignConnectPayloadV2(
