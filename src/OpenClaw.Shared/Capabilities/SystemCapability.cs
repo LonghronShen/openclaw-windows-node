@@ -503,7 +503,7 @@ public class SystemCapability : NodeCapabilityBase
             constraints = new
             {
                 baseHashRequired = true,
-                defaultAllowAllowed = false,
+                defaultAllowAllowed = true,
                 broadAllowRulesAllowed = false,
                 dangerousAllowRulesAllowed = false
             },
@@ -590,12 +590,6 @@ public class SystemCapability : NodeCapabilityBase
                     "prompt" => ExecApprovalAction.Prompt,
                     _ => ExecApprovalAction.Deny
                 };
-            }
-
-            if (defaultAction == ExecApprovalAction.Allow)
-            {
-                Logger.Warn("execApprovals.set denied: default allow is not permitted");
-                return Error("Default allow is not permitted for remote exec approval policy updates.");
             }
 
             var validationError = ValidateExecApprovalRules(rules);
