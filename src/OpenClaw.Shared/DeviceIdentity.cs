@@ -712,6 +712,44 @@ public class DeviceIdentity
         return sb.ToString();
     }
 
+    // Legacy-compatibility properties (used by legacy companion McpHttpServer.cs)
+    public string MachineName
+    {
+        get { return Environment.MachineName; }
+    }
+
+    public string OSVersion
+    {
+        get { return Environment.OSVersion.ToString(); }
+    }
+
+    public string UserName
+    {
+        get { return Environment.UserName; }
+    }
+
+    /// <summary>
+    /// Generate an RSA-signed auth token as hex.
+    /// </summary>
+    public string GenerateAuthToken()
+    {
+        if (_rsa == null)
+            throw new InvalidOperationException("Device not initialized");
+
+        // Create a challenge string from device info + timestamp
+        string challenge = DeviceId + ":" + DateTime.UtcNow.Ticks.ToString();
+        byte[] challengeBytes = Encoding.UTF8.GetBytes(challenge);
+
+        // Sign with SHA256
+        byte[] signature = _rsa.SignData(challengeBytes, new SHA256Managed());
+
+        // Return as hex
+        StringBuilder sb = new StringBuilder();
+        foreach (byte b in signature)
+            sb.Append(b.ToString("x2"));
+        return sb.ToString();
+    }
+
     #if NET10_0
     // Stub for the net10.0 overload with IEnumerable<string>
     public string SignConnectPayloadV3(

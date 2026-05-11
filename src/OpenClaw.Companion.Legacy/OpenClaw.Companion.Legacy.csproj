@@ -6,6 +6,7 @@
     <RootNamespace>OpenClaw</RootNamespace>
     <AssemblyName>OpenClawCompanion</AssemblyName>
     <LangVersion>12</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenClaw.Shared\OpenClaw.Shared.csproj" />

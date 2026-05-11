@@ -6,7 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using LegacyCompanion;
-using OpenClawLegacy;
+using OpenClaw.Shared;
 
 namespace OpenClaw
 {
