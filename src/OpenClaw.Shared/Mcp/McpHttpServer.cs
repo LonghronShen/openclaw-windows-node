@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -478,3 +479,4 @@ public sealed class McpHttpServer : IDisposable
         _handlerLimiter.Dispose();
     }
 }
+#endif

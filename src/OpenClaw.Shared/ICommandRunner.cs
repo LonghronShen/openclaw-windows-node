@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -53,3 +54,4 @@ public interface ICommandRunner
     /// <summary>Execute a command and return the result.</summary>
     Task<CommandResult> RunAsync(CommandRequest request, CancellationToken ct = default);
 }
+#endif

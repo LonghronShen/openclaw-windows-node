@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -83,3 +84,4 @@ public class LocationResult
     public double AccuracyMeters { get; set; }
     public long TimestampMs { get; set; }
 }
+#endif

@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Threading.Tasks;
 
 namespace OpenClaw.Shared.ExecApprovals;
@@ -12,3 +13,4 @@ public interface IExecApprovalV2Handler
     /// <param name="correlationId">Short identifier propagated through logging for this request.</param>
     Task<ExecApprovalV2Result> HandleAsync(OpenClaw.Shared.NodeInvokeRequest request, string correlationId);
 }
+#endif

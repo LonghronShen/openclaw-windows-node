@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -106,3 +107,4 @@ public sealed class TtsSpeakResult
     public string? ContentType { get; set; }
     public int? DurationMs { get; set; }
 }
+#endif

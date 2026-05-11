@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -197,3 +198,4 @@ public class ScreenRecordResult
     public bool HasAudio { get; set; }
 }
 
+#endif

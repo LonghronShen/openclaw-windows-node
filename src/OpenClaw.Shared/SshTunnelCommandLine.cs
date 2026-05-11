@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -74,3 +75,4 @@ public static class SshTunnelCommandLine
             throw new ArgumentOutOfRangeException(parameterName, port, "Browser proxy SSH forwarding requires gateway ports at or below 65533.");
     }
 }
+#endif

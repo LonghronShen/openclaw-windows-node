@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -403,3 +404,4 @@ public class McpToolBridge
         public McpToolException(string message) : base(message) { }
     }
 }
+#endif

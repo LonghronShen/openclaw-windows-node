@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
@@ -173,3 +174,4 @@ public class NotificationCategorizer
         return text.Contains(rule.Pattern, StringComparison.OrdinalIgnoreCase);
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Buffers;
 
 namespace OpenClaw.Shared;
@@ -74,3 +75,4 @@ internal static class ShellQuoting
     }
 
 }
+#endif

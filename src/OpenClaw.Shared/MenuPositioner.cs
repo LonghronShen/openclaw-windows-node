@@ -1,3 +1,4 @@
+#if NET10_0
 namespace OpenClaw.Shared;
 
 /// <summary>
@@ -49,3 +50,4 @@ public static class MenuPositioner
         return (x, y);
     }
 }
+#endif

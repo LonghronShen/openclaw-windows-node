@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -2202,3 +2203,4 @@ public class OpenClawGatewayClient : WebSocketClientBase
             : parts[^1];
     }
 }
+#endif

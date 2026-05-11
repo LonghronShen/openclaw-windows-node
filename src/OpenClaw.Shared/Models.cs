@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
@@ -1096,13 +1097,13 @@ public static class CommandCenterDiagnostics
         if (string.IsNullOrWhiteSpace(commandList))
             commandList = "none";
 
-        return string.Join(Environment.NewLine, [
+        return string.Join(Environment.NewLine, new string[] {
             "Privacy-sensitive OpenClaw command opt-in guidance",
             $"Commands: {commandList}",
             "Leave these commands blocked unless you explicitly want the connected gateway to use this device's camera, microphone, or screen recording surfaces.",
             "If you opt in, add only the exact commands you need to gateway.nodes.allowCommands, then re-approve or re-pair the node so the gateway refreshes its command snapshot.",
             "Do not use wildcards for privacy-sensitive commands."
-        ]);
+        });
     }
 
     public static bool TryGetCommandPermission(
@@ -1505,3 +1506,4 @@ internal static class ModelFormatting
     }
 }
 
+#endif

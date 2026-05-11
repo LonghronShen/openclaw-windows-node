@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,3 +39,4 @@ public interface IExecApprovalPromptHandler
 {
     Task<ExecApprovalPromptDecision> RequestAsync(ExecApprovalPromptRequest request, CancellationToken cancellationToken = default);
 }
+#endif

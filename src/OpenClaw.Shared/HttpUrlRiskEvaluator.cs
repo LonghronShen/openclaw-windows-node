@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -222,3 +223,4 @@ public static class HttpUrlRiskEvaluator
             int flags);
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Text.RegularExpressions;
 
 namespace OpenClaw.Shared;
@@ -28,3 +29,4 @@ public static class TokenSanitizer
         return LongBase64UrlPattern.Replace(sanitized, "[REDACTED_TOKEN]");
     }
 }
+#endif

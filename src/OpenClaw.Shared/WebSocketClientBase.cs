@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Buffers;
 using System.Net.WebSockets;
@@ -352,3 +353,4 @@ public abstract class WebSocketClientBase : IDisposable
         // It will be GC'd after all pending tasks complete.
     }
 }
+#endif

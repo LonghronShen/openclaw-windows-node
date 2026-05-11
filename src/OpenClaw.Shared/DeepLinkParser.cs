@@ -1,3 +1,4 @@
+#if NET10_0
 namespace OpenClaw.Shared;
 
 /// <summary>
@@ -55,3 +56,4 @@ public static class DeepLinkParser
         return null;
     }
 }
+#endif

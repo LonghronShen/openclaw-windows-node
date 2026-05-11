@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Collections.Generic;
 using System.Text.Json;
 
@@ -135,3 +136,4 @@ public static class ExecApprovalV2InputValidator
         return el.GetString();
     }
 }
+#endif

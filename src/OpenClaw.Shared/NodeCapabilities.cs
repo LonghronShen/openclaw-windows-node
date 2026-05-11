@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -203,3 +204,4 @@ public class NodeRegistration
     public List<string> Commands { get; set; } = new();
     public Dictionary<string, bool> Permissions { get; set; } = new();
 }
+#endif

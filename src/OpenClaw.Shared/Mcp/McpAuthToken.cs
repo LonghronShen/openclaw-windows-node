@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.IO;
 using System.Runtime.Versioning;
@@ -281,3 +282,4 @@ public static class McpAuthToken
             .TrimEnd('=');
     }
 }
+#endif

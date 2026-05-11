@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 
 namespace OpenClaw.Shared;
@@ -31,3 +32,4 @@ public static class UrlLogSanitizer
         return origin + firstSegment + (firstSlash < 0 ? string.Empty : "/…");
     }
 }
+#endif

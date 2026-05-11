@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Threading.Tasks;
 
@@ -25,3 +26,4 @@ public interface IDeviceStatusProvider : IDisposable
     /// <summary>Battery presence, charge level, charging state, estimated time remaining.</summary>
     object GetBatteryInfo();
 }
+#endif

@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -160,3 +161,4 @@ internal static class ExecEnvSanitizer
         return false;
     }
 }
+#endif

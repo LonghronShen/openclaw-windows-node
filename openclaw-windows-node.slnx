@@ -22,6 +22,7 @@
       <Platform Solution="*|x64" Project="x64" />
       <Platform Solution="*|ARM64" Project="ARM64" />
     </Project>
+    <Project Path="src/OpenClaw.Companion.Legacy/OpenClaw.Companion.Legacy.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/OpenClaw.Shared.Tests/OpenClaw.Shared.Tests.csproj" />

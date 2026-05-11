@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -198,3 +199,4 @@ public class LocalCommandRunner : ICommandRunner
         }
     }
 }
+#endif

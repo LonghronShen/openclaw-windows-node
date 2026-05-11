@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Text.Json;
 
@@ -128,3 +129,4 @@ public sealed record WebBridgeMessage
         }
     }
 }
+#endif

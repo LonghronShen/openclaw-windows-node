@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -81,3 +82,4 @@ public class SettingsData
         }
     }
 }
+#endif

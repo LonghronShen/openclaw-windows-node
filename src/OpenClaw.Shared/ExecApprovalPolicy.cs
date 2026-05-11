@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -345,3 +346,4 @@ public class ExecPolicyData
     public ExecApprovalAction DefaultAction { get; set; } = ExecApprovalAction.Deny;
     public List<ExecApprovalRule> Rules { get; set; } = new();
 }
+#endif

@@ -1,3 +1,4 @@
+#if NET10_0
 namespace OpenClaw.Shared.ExecApprovals;
 
 /// <summary>
@@ -48,3 +49,4 @@ public sealed class ExecApprovalV2Result
 
     public override string ToString() => $"{Code}: {Reason}";
 }
+#endif

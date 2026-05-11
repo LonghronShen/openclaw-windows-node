@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Buffers;
 
@@ -158,3 +159,4 @@ public static class GatewayUrlHelper
     }
 }
 
+#endif

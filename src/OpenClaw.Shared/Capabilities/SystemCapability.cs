@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -703,3 +704,4 @@ public class SystemNotifyArgs : EventArgs
     public string? Subtitle { get; set; }
     public bool PlaySound { get; set; } = true;
 }
+#endif

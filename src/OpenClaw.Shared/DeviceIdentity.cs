@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -224,7 +225,19 @@ public class DeviceIdentity
         if (_deviceId == null)
             throw new InvalidOperationException("Device not initialized");
 
-        var scopesCsv = string.Join(",", scopes ?? Array.Empty<string>());
+        string scopesCsv;
+        {
+            var scopeList = scopes ?? Array.Empty<string>();
+            var sb = new StringBuilder();
+            bool first = true;
+            foreach (var s in scopeList)
+            {
+                if (!first) sb.Append(',');
+                sb.Append(s ?? string.Empty);
+                first = false;
+            }
+            scopesCsv = sb.ToString();
+        }
         var safeToken = authToken ?? string.Empty;
         var safeNonce = nonce ?? string.Empty;
 
@@ -277,7 +290,19 @@ public class DeviceIdentity
         if (_deviceId == null)
             throw new InvalidOperationException("Device not initialized");
 
-        var scopesCsv = string.Join(",", scopes ?? Array.Empty<string>());
+        string scopesCsv;
+        {
+            var scopeList = scopes ?? Array.Empty<string>();
+            var sb = new StringBuilder();
+            bool first = true;
+            foreach (var s in scopeList)
+            {
+                if (!first) sb.Append(',');
+                sb.Append(s ?? string.Empty);
+                first = false;
+            }
+            scopesCsv = sb.ToString();
+        }
         var safeToken = authToken ?? string.Empty;
         var safeNonce = nonce ?? string.Empty;
 
@@ -348,3 +373,405 @@ public class DeviceIdentity
         public long CreatedAt { get; set; }
     }
 }
+#elif NET20
+using System;
+using System.IO;
+using System.Text;
+using System.Security.Cryptography;
+
+namespace OpenClaw.Shared;
+
+/// <summary>
+/// Manages device identity (keypair) for node authentication using RSA 1024-bit
+/// (legacy companion compatible).
+/// </summary>
+public class DeviceIdentity
+{
+    private readonly string _dataPath;
+    private readonly IOpenClawLogger _logger;
+    private string _deviceId = "";
+    private RSACryptoServiceProvider _rsa;
+
+    private static readonly string KeyFilename = "device_key.xml";
+
+    public string DeviceId
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_deviceId))
+                throw new InvalidOperationException("Device not initialized");
+            return _deviceId;
+        }
+    }
+
+    public string PublicKeyBase64Url
+    {
+        get
+        {
+            if (_rsa == null)
+                throw new InvalidOperationException("Device not initialized");
+            string publicKeyXml = _rsa.ToXmlString(false);
+            byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKeyXml);
+            return Convert.ToBase64String(publicKeyBytes)
+                .Replace('+', '-')
+                .Replace('/', '_')
+                .TrimEnd('=');
+        }
+    }
+
+    public string DeviceToken { get; private set; }
+
+    public static string TryReadStoredDeviceToken(string dataPath, IOpenClawLogger logger)
+    {
+        string keyPath = Path.Combine(dataPath, "device_key.xml");
+        if (!File.Exists(keyPath))
+            return null;
+
+        try
+        {
+            // Legacy token: stored as a sidecar file next to the key
+            string tokenPath = Path.Combine(dataPath, "device_token.txt");
+            if (File.Exists(tokenPath))
+            {
+                string value = File.ReadAllText(tokenPath).Trim();
+                return string.IsNullOrEmpty(value) ? null : value;
+            }
+        }
+        catch (IOException ex)
+        {
+            logger.Warn("Failed to read stored device token: " + ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.Warn("Failed to read stored device token: " + ex.Message);
+        }
+
+        return null;
+    }
+
+    public static bool HasStoredDeviceToken(string dataPath, IOpenClawLogger logger) =>
+        !string.IsNullOrEmpty(TryReadStoredDeviceToken(dataPath, logger));
+
+    public DeviceIdentity(string dataPath, IOpenClawLogger logger)
+    {
+        _dataPath = dataPath;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Initialize the device identity - loads existing or generates new keypair
+    /// </summary>
+    public void Initialize()
+    {
+        string keyFile = Path.Combine(_dataPath, KeyFilename);
+
+        if (File.Exists(keyFile))
+        {
+            LoadExisting(keyFile);
+        }
+        else
+        {
+            GenerateNew(keyFile);
+        }
+
+        // Try loading device token
+        string tokenPath = Path.Combine(_dataPath, "device_token.txt");
+        if (File.Exists(tokenPath))
+        {
+            DeviceToken = File.ReadAllText(tokenPath).Trim();
+        }
+    }
+
+    private void LoadExisting(string keyFile)
+    {
+        try
+        {
+            string xml = File.ReadAllText(keyFile);
+            _rsa = new RSACryptoServiceProvider(1024);
+            _rsa.FromXmlString(xml);
+
+            // Compute device ID from public key
+            _deviceId = ComputeDeviceId(_rsa);
+            _logger.Info("Loaded RSA 1024-bit device identity: " + _deviceId.Substring(0, Math.Min(16, _deviceId.Length)) + "...");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Failed to load device key: " + ex.Message);
+            GenerateNew(keyFile);
+        }
+    }
+
+    private void GenerateNew(string keyFile)
+    {
+        _logger.Info("Generating new RSA 1024-bit device keypair...");
+
+        _rsa = new RSACryptoServiceProvider(1024);
+
+        // Save private key to disk
+        string xml = _rsa.ToXmlString(true);
+        string dir = Path.GetDirectoryName(keyFile);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+        File.WriteAllText(keyFile, xml);
+
+        // Compute device ID
+        _deviceId = ComputeDeviceId(_rsa);
+        _logger.Info("Generated new RSA 1024-bit device identity: " + _deviceId);
+    }
+
+    private static string ComputeDeviceId(RSACryptoServiceProvider rsa)
+    {
+        string publicKeyXml = rsa.ToXmlString(false);
+        byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKeyXml);
+
+        using (SHA256 sha256 = SHA256.Create())
+        {
+            byte[] hash = sha256.ComputeHash(publicKeyBytes);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 16; i++)
+                sb.Append(hash[i].ToString("x2"));
+            return sb.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Sign a payload for device authentication (RSA-SHA256).
+    /// </summary>
+    public string SignPayload(string nonce, long signedAtMs, string clientId, string authToken)
+    {
+        if (_rsa == null || string.IsNullOrEmpty(_deviceId))
+            throw new InvalidOperationException("Device not initialized");
+
+        string payload = BuildDebugPayload(nonce, signedAtMs, clientId, authToken);
+        byte[] dataBytes = Encoding.UTF8.GetBytes(payload);
+        byte[] signature = _rsa.SignData(dataBytes, new SHA256Managed());
+        return Convert.ToBase64String(signature);
+    }
+
+    /// <summary>
+    /// Sign a v3 connect payload (RSA-SHA256).
+    /// </summary>
+    public string SignConnectPayloadV3(
+        string nonce,
+        long signedAtMs,
+        string clientId,
+        string clientMode,
+        string role,
+        string[] scopes,
+        string authToken,
+        string platform,
+        string deviceFamily)
+    {
+        if (_rsa == null)
+            throw new InvalidOperationException("Device not initialized");
+
+        string payload = BuildConnectPayloadV3(
+            nonce, signedAtMs, clientId, clientMode, role, scopes, authToken, platform, deviceFamily);
+
+        byte[] dataBytes = Encoding.UTF8.GetBytes(payload);
+        byte[] signature = _rsa.SignData(dataBytes, new SHA256Managed());
+        return Convert.ToBase64String(signature);
+    }
+
+    /// <summary>
+    /// Build the v3 connect payload string for signing/debugging.
+    /// </summary>
+    public string BuildConnectPayloadV3(
+        string nonce,
+        long signedAtMs,
+        string clientId,
+        string clientMode,
+        string role,
+        string[] scopes,
+        string authToken,
+        string platform,
+        string deviceFamily)
+    {
+        if (string.IsNullOrEmpty(_deviceId))
+            throw new InvalidOperationException("Device not initialized");
+
+        string scopesCsv = JoinStrings(scopes, ",");
+        string safeToken = authToken ?? string.Empty;
+        string safeNonce = nonce ?? string.Empty;
+
+        return "v3|" + _deviceId + "|" + clientId + "|" + clientMode + "|" + role + "|" + scopesCsv + "|" + signedAtMs + "|" + safeToken + "|" + safeNonce + "|" + platform + "|" + deviceFamily;
+    }
+
+    /// <summary>
+    /// Sign a v2 connect payload (RSA-SHA256).
+    /// </summary>
+    public string SignConnectPayloadV2(
+        string nonce,
+        long signedAtMs,
+        string clientId,
+        string clientMode,
+        string role,
+        string[] scopes,
+        string authToken)
+    {
+        if (_rsa == null)
+            throw new InvalidOperationException("Device not initialized");
+
+        string payload = BuildConnectPayloadV2(
+            nonce, signedAtMs, clientId, clientMode, role, scopes, authToken);
+
+        byte[] dataBytes = Encoding.UTF8.GetBytes(payload);
+        byte[] signature = _rsa.SignData(dataBytes, new SHA256Managed());
+        return Convert.ToBase64String(signature);
+    }
+
+    /// <summary>
+    /// Build the v2 connect payload string for signing/debugging.
+    /// </summary>
+    public string BuildConnectPayloadV2(
+        string nonce,
+        long signedAtMs,
+        string clientId,
+        string clientMode,
+        string role,
+        string[] scopes,
+        string authToken)
+    {
+        if (string.IsNullOrEmpty(_deviceId))
+            throw new InvalidOperationException("Device not initialized");
+
+        string scopesCsv = JoinStrings(scopes, ",");
+        string safeToken = authToken ?? string.Empty;
+        string safeNonce = nonce ?? string.Empty;
+
+        return "v2|" + _deviceId + "|" + clientId + "|" + clientMode + "|" + role + "|" + scopesCsv + "|" + signedAtMs + "|" + safeToken + "|" + safeNonce;
+    }
+
+    /// <summary>
+    /// Build the debug payload string.
+    /// </summary>
+    public string BuildDebugPayload(string nonce, long signedAtMs, string clientId, string authToken)
+    {
+        if (string.IsNullOrEmpty(_deviceId))
+            throw new InvalidOperationException("Device not initialized");
+
+        return "v2|" + _deviceId + "|" + clientId + "|node|node||" + signedAtMs + "|" + authToken + "|" + nonce;
+    }
+
+    /// <summary>
+    /// Store the device token received after pairing approval
+    /// </summary>
+    public void StoreDeviceToken(string token)
+    {
+        DeviceToken = token;
+
+        try
+        {
+            string tokenPath = Path.Combine(_dataPath, "device_token.txt");
+            if (!Directory.Exists(_dataPath))
+                Directory.CreateDirectory(_dataPath);
+            File.WriteAllText(tokenPath, token);
+            _logger.Info("Device token stored");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Failed to store device token: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Verify a signature using this device's public key.
+    /// </summary>
+    public bool VerifySignature(string data, string signatureBase64)
+    {
+        try
+        {
+            if (_rsa == null)
+                return false;
+
+            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+            byte[] signatureBytes = Convert.FromBase64String(signatureBase64);
+            return _rsa.VerifyData(dataBytes, new SHA256Managed(), signatureBytes);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Join strings with a separator (replacement for string.Join for net20 compatibility).
+    /// </summary>
+    private static string JoinStrings(string[] values, string separator)
+    {
+        if (values == null || values.Length == 0)
+            return string.Empty;
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (i > 0)
+                sb.Append(separator);
+            sb.Append(values[i] ?? string.Empty);
+        }
+        return sb.ToString();
+    }
+
+    #if NET10_0
+    // Stub for the net10.0 overload with IEnumerable<string>
+    public string SignConnectPayloadV3(
+        string nonce,
+        long signedAtMs,
+        string clientId,
+        string clientMode,
+        string role,
+        System.Collections.Generic.IEnumerable<string> scopes,
+        string authToken,
+        string platform,
+        string deviceFamily)
+    {
+        return SignConnectPayloadV3(nonce, signedAtMs, clientId, clientMode, role, ToArray(scopes), authToken, platform, deviceFamily);
+    }
+
+    public string SignConnectPayloadV2(
+        string nonce,
+        long signedAtMs,
+        string clientId,
+        string clientMode,
+        string role,
+        System.Collections.Generic.IEnumerable<string> scopes,
+        string authToken)
+    {
+        return SignConnectPayloadV2(nonce, signedAtMs, clientId, clientMode, role, ToArray(scopes), authToken);
+    }
+
+    public string BuildConnectPayloadV3(
+        string nonce,
+        long signedAtMs,
+        string clientId,
+        string clientMode,
+        string role,
+        System.Collections.Generic.IEnumerable<string> scopes,
+        string authToken,
+        string platform,
+        string deviceFamily)
+    {
+        return BuildConnectPayloadV3(nonce, signedAtMs, clientId, clientMode, role, ToArray(scopes), authToken, platform, deviceFamily);
+    }
+
+    public string BuildConnectPayloadV2(
+        string nonce,
+        long signedAtMs,
+        string clientId,
+        string clientMode,
+        string role,
+        System.Collections.Generic.IEnumerable<string> scopes,
+        string authToken)
+    {
+        return BuildConnectPayloadV2(nonce, signedAtMs, clientId, clientMode, role, ToArray(scopes), authToken);
+    }
+
+    private static string[] ToArray(System.Collections.Generic.IEnumerable<string> items)
+    {
+        if (items == null) return new string[0];
+        var list = new System.Collections.Generic.List<string>(items);
+        return list.ToArray();
+    }
+    #endif
+}
+#endif

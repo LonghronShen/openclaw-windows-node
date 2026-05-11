@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -1046,3 +1047,4 @@ public class WindowsNodeClient : WebSocketClientBase
         // Same rationale as OnDisconnected: preserve pairing state across errors.
     }
 }
+#endif

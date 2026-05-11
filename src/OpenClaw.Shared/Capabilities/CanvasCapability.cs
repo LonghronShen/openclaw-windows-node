@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -551,3 +552,4 @@ public class CanvasA2UIArgs : EventArgs
     public string? JsonlPath { get; set; }
     public string Props { get; set; } = "{}";
 }
+#endif

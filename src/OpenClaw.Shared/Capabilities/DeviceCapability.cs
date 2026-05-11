@@ -1,3 +1,4 @@
+#if NET10_0
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -275,3 +276,4 @@ public class DeviceCapability : NodeCapabilityBase
 
     #endregion
 }
+#endif

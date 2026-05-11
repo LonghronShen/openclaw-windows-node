@@ -1,3 +1,4 @@
+#if NET10_0
 using System.Collections.Generic;
 
 namespace OpenClaw.Shared.ExecApprovals;
@@ -60,3 +61,4 @@ public sealed class ExecApprovalV2ValidationOutcome
     public static ExecApprovalV2ValidationOutcome Ok(ValidatedRunRequest r) => new(r);
     public static ExecApprovalV2ValidationOutcome Fail(ExecApprovalV2Result e) => new(e);
 }
+#endif

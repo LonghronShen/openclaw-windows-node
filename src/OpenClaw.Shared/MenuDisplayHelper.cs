@@ -1,3 +1,4 @@
+#if NET10_0
 namespace OpenClaw.Shared;
 
 /// <summary>
@@ -38,3 +39,4 @@ public static class MenuDisplayHelper
         return string.Equals(current, "on", StringComparison.OrdinalIgnoreCase) ? "off" : "on";
     }
 }
+#endif
