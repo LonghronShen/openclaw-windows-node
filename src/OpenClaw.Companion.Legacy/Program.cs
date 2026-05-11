@@ -46,7 +46,7 @@ namespace OpenClaw
             string dataPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "OpenClawCompanion");
-            DeviceIdentity deviceIdentity = new DeviceIdentity(dataPath);
+            DeviceIdentity deviceIdentity = new DeviceIdentity(dataPath, null);
             try
             {
                 deviceIdentity.Initialize();
