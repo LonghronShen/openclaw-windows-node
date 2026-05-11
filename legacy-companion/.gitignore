@@ -1,0 +1,17 @@
+# Build outputs
+*.exe
+*.dll
+*.pdb
+*.netmodule
+*.obj
+bin/
+obj/
+Build/
+
+# Screenshots
+*.png
+*.bmp
+
+# OS files
+Thumbs.db
+.DS_Store
