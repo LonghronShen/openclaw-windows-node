@@ -5,7 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace LegacyCompanion
+namespace OpenClaw
 {
     /// <summary>
     /// Screen capture service using GDI+ and Win32 APIs.
